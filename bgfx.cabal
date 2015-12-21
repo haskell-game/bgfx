@@ -25,3 +25,10 @@ library
   default-language:    Haskell2010
   extra-libraries: bgfx, GL
   pkgconfig-depends: bgfx
+
+executable hello
+  build-depends: base, bgfx, sdl2
+  main-is: Hello.hs
+  extra-libraries: GL
+  c-sources:
+    cbits/sdl-bgfx.c

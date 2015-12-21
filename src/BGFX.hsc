@@ -4,6 +4,7 @@
 
 module BGFX where
 
+import Data.Int
 import Data.Word
 import Foreign.C
 import Foreign.C.Types
@@ -28,7 +29,7 @@ foreign import ccall unsafe
   "bgfx_reset" bgfxReset :: Word32 -> Word32 -> Word32 -> IO ()
 
 pattern BGFX_RESET_NONE = (#const BGFX_RESET_NONE)
-pattern BGFX_RESET_FULLSCREEN = (#const BGFX_RESET_FULLSCREEN) 
+pattern BGFX_RESET_FULLSCREEN = (#const BGFX_RESET_FULLSCREEN)
 pattern BGFX_RESET_FULLSCREEN_SHIFT = (#const BGFX_RESET_FULLSCREEN_SHIFT)
 pattern BGFX_RESET_FULLSCREEN_MASK = (#const BGFX_RESET_FULLSCREEN_MASK)
 pattern BGFX_RESET_MSAA_X2 = (#const BGFX_RESET_MSAA_X2)
@@ -93,6 +94,9 @@ foreign import ccall unsafe
   "bgfx_get_hmd" bgfxGetHMD :: IO (Ptr BgfxHMD)
 
 data BgfxHMD
+
+foreign import ccall unsafe
+  "bgfx_render_frame" bgfxRenderFrame :: IO ()
 
 foreign import ccall unsafe
   "bgfx_discard" bgfxDiscard :: IO ()
@@ -242,3 +246,254 @@ foreign import ccall unsafe
 
 foreign import ccall unsafe
   "bgfx_set_scissor_cached" bgfxSetScissorCached :: Word16 -> IO ()
+
+type BgfxOcclusionQueryHandle = Word16
+
+foreign import ccall unsafe
+  "bgfx_set_condition" bgfxSetCondition :: BgfxOcclusionQueryHandle -> Bool -> IO ()
+
+type BgfxIndexBufferHandle = Word16
+
+foreign import ccall unsafe
+  "bgfx_set_index_buffer" bgfxSetIndexBuffer :: BgfxIndexBufferHandle -> Word32 -> Word32 -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_set_dynamic_index_buffer" bgfxSetDynamicIndexBuffer :: BgfxIndexBufferHandle -> Word32 -> Word32 -> IO ()
+
+data BgfxIndexBuffer
+
+foreign import ccall unsafe
+  "bgfx_set_transient_index_buffer" bgfxSetTransientIndexBuffer :: Ptr BgfxIndexBuffer -> Word32 -> Word32 -> IO ()
+
+type BgfxVertexBufferHandle = Word16
+
+type BgfxDynamicVertexBufferHandle = Word16
+
+foreign import ccall unsafe
+  "bgfx_set_vertex_buffer" bgfxSetVertexBuffer :: BgfxVertexBufferHandle -> Word32 -> Word32 -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_set_dynamic_vertex_buffer" bgfxSetDynamicVertexBuffer :: BgfxVertexBufferHandle -> Word32 -> IO ()
+
+data BgfxVertexBuffer
+
+foreign import ccall unsafe
+  "bgfx_set_transient_vertex_buffer" bgfxSetTransientVertexBuffer :: Ptr BgfxVertexBuffer -> Word32 -> Word32 -> IO ()
+
+type BgfxInstanceDataBufferHandle = Word16
+
+data BgfxInstanceDataBuffer
+
+foreign import ccall unsafe
+  "bgfx_set_instance_data_buffer" bgfxSetInstanceDataBuffer :: Ptr BgfxInstanceDataBuffer -> Word32 -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_set_instance_data_buffer_from_vertex_buffer" bgfxSetInstanceDataBufferFromVertexBuffer :: BgfxVertexBufferHandle -> Word32 -> Word32 -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_set_instance_data_buffer_from_dynamic_vertex_buffer" bgfxSetInstanceDataBufferFromDynamicVertexBuffer :: BgfxDynamicVertexBufferHandle -> Word32 -> Word32 -> IO ()
+
+type BgfxUniformHandle = Word16
+
+type BgfxTextureHandle = Word16
+
+foreign import ccall unsafe
+  "bgfx_set_texture" bgfxSetTexture :: Word8 -> BgfxUniformHandle -> BgfxTextureHandle -> Word32 -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_set_texture_from_frame_buffer" bgfxSetTextureFromFrameBuffer :: Word8 -> BgfxUniformHandle -> BgfxFrameBufferHandle -> Word8 -> Word32 -> IO ()
+
+type BgfxProgramHandle = Word16
+
+foreign import ccall unsafe
+  "bgfx_submit" bgfxSubmit :: Word8 -> BgfxProgramHandle -> Int32 -> IO Word32
+
+foreign import ccall unsafe
+  "bgfx_submit_occlusion_query" bgfxSubmitOcclusionQuery :: Word8 -> BgfxProgramHandle -> BgfxOcclusionQueryHandle -> Int32 -> IO Word32
+
+type BgfxIndirectBufferHandle = Word16
+
+foreign import ccall unsafe
+  "bgfx_submit_indirect" bgfxSubmitIndirect :: Word8 -> BgfxProgramHandle -> BgfxIndirectBufferHandle -> Word16 -> Word16 -> Int32 -> IO Word32
+
+pattern BGFX_ACCESS_READ = (#const BGFX_ACCESS_READ)
+pattern BGFX_ACCESS_WRITE = (#const BGFX_ACCESS_WRITE)
+pattern BGFX_ACCESS_READWRITE = (#const BGFX_ACCESS_READWRITE)
+pattern BGFX_ACCESS_COUNT = (#const BGFX_ACCESS_COUNT)
+
+type BgfxAccess = (#type bgfx_access_t)
+
+foreign import ccall unsafe
+  "bgfx_set_compute_index_buffer" bgfxSetComputeIndexBuffer :: Word8 -> BgfxIndexBufferHandle -> BgfxAccess -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_set_compute_vertex_buffer" bgfxSetComputeVertexBuffer :: Word8 -> BgfxVertexBufferHandle -> BgfxAccess -> IO ()
+
+type BgfxDynamicIndexBufferHandle = Word16
+
+foreign import ccall unsafe
+  "bgfx_set_compute_dynamic_index_buffer" bgxSetComputeDynamicIndexBuffer :: Word8 -> BgfxDynamicIndexBufferHandle -> BgfxAccess -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_set_compute_dynamic_vertex_buffer" bgfxSetComputeDynamicVertexBuffer :: Word8 -> BgfxDynamicVertexBufferHandle -> BgfxAccess -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_set_compute_indirect_buffer" bgfxSetComputeIndirectBuffer :: Word8 -> BgfxIndirectBufferHandle -> BgfxAccess -> IO ()
+
+type BgfxTextureFormat = (#type bgfx_texture_format_t)
+
+pattern BGFX_TEXTURE_FORMAT_BC1 = (#const BGFX_TEXTURE_FORMAT_BC1)
+pattern BGFX_TEXTURE_FORMAT_BC2 = (#const BGFX_TEXTURE_FORMAT_BC2)
+pattern BGFX_TEXTURE_FORMAT_BC3 = (#const BGFX_TEXTURE_FORMAT_BC3)
+pattern BGFX_TEXTURE_FORMAT_BC4 = (#const BGFX_TEXTURE_FORMAT_BC4)
+pattern BGFX_TEXTURE_FORMAT_BC5 = (#const BGFX_TEXTURE_FORMAT_BC5)
+pattern BGFX_TEXTURE_FORMAT_BC6H = (#const BGFX_TEXTURE_FORMAT_BC6H)
+pattern BGFX_TEXTURE_FORMAT_BC7 = (#const BGFX_TEXTURE_FORMAT_BC7)
+pattern BGFX_TEXTURE_FORMAT_ETC1 = (#const BGFX_TEXTURE_FORMAT_ETC1)
+pattern BGFX_TEXTURE_FORMAT_ETC2 = (#const BGFX_TEXTURE_FORMAT_ETC2)
+pattern BGFX_TEXTURE_FORMAT_ETC2A = (#const BGFX_TEXTURE_FORMAT_ETC2A)
+pattern BGFX_TEXTURE_FORMAT_ETC2A1 = (#const BGFX_TEXTURE_FORMAT_ETC2A1)
+pattern BGFX_TEXTURE_FORMAT_PTC12 = (#const BGFX_TEXTURE_FORMAT_PTC12)
+pattern BGFX_TEXTURE_FORMAT_PTC14 = (#const BGFX_TEXTURE_FORMAT_PTC14)
+pattern BGFX_TEXTURE_FORMAT_PTC12A = (#const BGFX_TEXTURE_FORMAT_PTC12A)
+pattern BGFX_TEXTURE_FORMAT_PTC14A = (#const BGFX_TEXTURE_FORMAT_PTC14A)
+pattern BGFX_TEXTURE_FORMAT_PTC22 = (#const BGFX_TEXTURE_FORMAT_PTC22)
+pattern BGFX_TEXTURE_FORMAT_PTC24 = (#const BGFX_TEXTURE_FORMAT_PTC24)
+pattern BGFX_TEXTURE_FORMAT_UNKNOWN = (#const BGFX_TEXTURE_FORMAT_UNKNOWN)
+pattern BGFX_TEXTURE_FORMAT_R1 = (#const BGFX_TEXTURE_FORMAT_R1)
+pattern BGFX_TEXTURE_FORMAT_A8 = (#const BGFX_TEXTURE_FORMAT_A8)
+pattern BGFX_TEXTURE_FORMAT_R8 = (#const BGFX_TEXTURE_FORMAT_R8)
+pattern BGFX_TEXTURE_FORMAT_R8I = (#const BGFX_TEXTURE_FORMAT_R8I)
+pattern BGFX_TEXTURE_FORMAT_R8U = (#const BGFX_TEXTURE_FORMAT_R8U)
+pattern BGFX_TEXTURE_FORMAT_R8S = (#const BGFX_TEXTURE_FORMAT_R8S)
+pattern BGFX_TEXTURE_FORMAT_R16 = (#const BGFX_TEXTURE_FORMAT_R16)
+pattern BGFX_TEXTURE_FORMAT_R16I = (#const BGFX_TEXTURE_FORMAT_R16I)
+pattern BGFX_TEXTURE_FORMAT_R16U = (#const BGFX_TEXTURE_FORMAT_R16U)
+pattern BGFX_TEXTURE_FORMAT_R16F = (#const BGFX_TEXTURE_FORMAT_R16F)
+pattern BGFX_TEXTURE_FORMAT_R16S = (#const BGFX_TEXTURE_FORMAT_R16S)
+pattern BGFX_TEXTURE_FORMAT_R32I = (#const BGFX_TEXTURE_FORMAT_R32I)
+pattern BGFX_TEXTURE_FORMAT_R32U = (#const BGFX_TEXTURE_FORMAT_R32U)
+pattern BGFX_TEXTURE_FORMAT_R32F = (#const BGFX_TEXTURE_FORMAT_R32F)
+pattern BGFX_TEXTURE_FORMAT_RG8 = (#const BGFX_TEXTURE_FORMAT_RG8)
+pattern BGFX_TEXTURE_FORMAT_RG8I = (#const BGFX_TEXTURE_FORMAT_RG8I)
+pattern BGFX_TEXTURE_FORMAT_RG8U = (#const BGFX_TEXTURE_FORMAT_RG8U)
+pattern BGFX_TEXTURE_FORMAT_RG8S = (#const BGFX_TEXTURE_FORMAT_RG8S)
+pattern BGFX_TEXTURE_FORMAT_RG16 = (#const BGFX_TEXTURE_FORMAT_RG16)
+pattern BGFX_TEXTURE_FORMAT_RG16I = (#const BGFX_TEXTURE_FORMAT_RG16I)
+pattern BGFX_TEXTURE_FORMAT_RG16U = (#const BGFX_TEXTURE_FORMAT_RG16U)
+pattern BGFX_TEXTURE_FORMAT_RG16F = (#const BGFX_TEXTURE_FORMAT_RG16F)
+pattern BGFX_TEXTURE_FORMAT_RG16S = (#const BGFX_TEXTURE_FORMAT_RG16S)
+pattern BGFX_TEXTURE_FORMAT_RG32I = (#const BGFX_TEXTURE_FORMAT_RG32I)
+pattern BGFX_TEXTURE_FORMAT_RG32U = (#const BGFX_TEXTURE_FORMAT_RG32U)
+pattern BGFX_TEXTURE_FORMAT_RG32F = (#const BGFX_TEXTURE_FORMAT_RG32F)
+pattern BGFX_TEXTURE_FORMAT_RGB9E5F = (#const BGFX_TEXTURE_FORMAT_RGB9E5F)
+pattern BGFX_TEXTURE_FORMAT_BGRA8 = (#const BGFX_TEXTURE_FORMAT_BGRA8)
+pattern BGFX_TEXTURE_FORMAT_RGBA8 = (#const BGFX_TEXTURE_FORMAT_RGBA8)
+pattern BGFX_TEXTURE_FORMAT_RGBA8I = (#const BGFX_TEXTURE_FORMAT_RGBA8I)
+pattern BGFX_TEXTURE_FORMAT_RGBA8U = (#const BGFX_TEXTURE_FORMAT_RGBA8U)
+pattern BGFX_TEXTURE_FORMAT_RGBA8S = (#const BGFX_TEXTURE_FORMAT_RGBA8S)
+pattern BGFX_TEXTURE_FORMAT_RGBA16 = (#const BGFX_TEXTURE_FORMAT_RGBA16)
+pattern BGFX_TEXTURE_FORMAT_RGBA16I = (#const BGFX_TEXTURE_FORMAT_RGBA16I)
+pattern BGFX_TEXTURE_FORMAT_RGBA16U = (#const BGFX_TEXTURE_FORMAT_RGBA16U)
+pattern BGFX_TEXTURE_FORMAT_RGBA16F = (#const BGFX_TEXTURE_FORMAT_RGBA16F)
+pattern BGFX_TEXTURE_FORMAT_RGBA16S = (#const BGFX_TEXTURE_FORMAT_RGBA16S)
+pattern BGFX_TEXTURE_FORMAT_RGBA32I = (#const BGFX_TEXTURE_FORMAT_RGBA32I)
+pattern BGFX_TEXTURE_FORMAT_RGBA32U = (#const BGFX_TEXTURE_FORMAT_RGBA32U)
+pattern BGFX_TEXTURE_FORMAT_RGBA32F = (#const BGFX_TEXTURE_FORMAT_RGBA32F)
+pattern BGFX_TEXTURE_FORMAT_R5G6B5 = (#const BGFX_TEXTURE_FORMAT_R5G6B5)
+pattern BGFX_TEXTURE_FORMAT_RGBA4 = (#const BGFX_TEXTURE_FORMAT_RGBA4)
+pattern BGFX_TEXTURE_FORMAT_RGB5A1 = (#const BGFX_TEXTURE_FORMAT_RGB5A1)
+pattern BGFX_TEXTURE_FORMAT_RGB10A2 = (#const BGFX_TEXTURE_FORMAT_RGB10A2)
+pattern BGFX_TEXTURE_FORMAT_R11G11B10F = (#const BGFX_TEXTURE_FORMAT_R11G11B10F)
+pattern BGFX_TEXTURE_FORMAT_UNKNOWN_DEPTH = (#const BGFX_TEXTURE_FORMAT_UNKNOWN_DEPTH)
+pattern BGFX_TEXTURE_FORMAT_D16 = (#const BGFX_TEXTURE_FORMAT_D16)
+pattern BGFX_TEXTURE_FORMAT_D24 = (#const BGFX_TEXTURE_FORMAT_D24)
+pattern BGFX_TEXTURE_FORMAT_D24S8 = (#const BGFX_TEXTURE_FORMAT_D24S8)
+pattern BGFX_TEXTURE_FORMAT_D32 = (#const BGFX_TEXTURE_FORMAT_D32)
+pattern BGFX_TEXTURE_FORMAT_D16F = (#const BGFX_TEXTURE_FORMAT_D16F)
+pattern BGFX_TEXTURE_FORMAT_D24F = (#const BGFX_TEXTURE_FORMAT_D24F)
+pattern BGFX_TEXTURE_FORMAT_D32F = (#const BGFX_TEXTURE_FORMAT_D32F)
+pattern BGFX_TEXTURE_FORMAT_D0S8 = (#const BGFX_TEXTURE_FORMAT_D0S8)
+pattern BGFX_TEXTURE_FORMAT_COUN = (#const BGFX_TEXTURE_FORMAT_COUNT)
+
+foreign import ccall unsafe
+  "bgfx_set_image" bgfxSetImage :: Word8 -> BgfxUniformHandle -> BgfxTextureHandle -> Word8 -> BgfxAccess -> BgfxTextureFormat -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_set_image_from_frame_buffer" bgfxSetImageFromFrameBuffer :: Word8 -> BgfxUniformHandle -> BgfxFrameBufferHandle -> Word8 -> BgfxAccess -> BgfxTextureFormat -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_dispatch" bgfxDispatch :: Word8 -> BgfxProgramHandle -> Word16 -> Word16 -> Word16 -> Word8 -> IO Word32
+
+foreign import ccall unsafe
+  "bgfx_dispatch_indirect" bgfxDispatchIndirect :: Word8 -> BgfxProgramHandle -> BgfxIndirectBufferHandle -> Word16 -> Word16 -> Word16 -> Word8 -> IO Word32
+
+foreign import ccall unsafe
+  "bgfx_blit" bgfxBlit :: Word8 -> BgfxTextureHandle -> Word8 -> Word16 -> Word16 -> Word16 -> BgfxTextureHandle -> Word8 -> Word16 -> Word16 -> Word16 -> Word16-> Word16 -> Word16 -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_blit_frame_buffer" bgfxBlitFrameBuffer :: Word8 -> BgfxTextureHandle -> Word8 -> Word16 -> Word16 -> Word16 -> BgfxFrameBufferHandle -> Word8 -> Word8 -> Word16 -> Word16 -> Word16 -> Word16 -> Word16 -> Word16 -> IO ()
+
+data BgfxMemory
+
+foreign import ccall unsafe
+  "bgfx_alloc" bgfxAlloc :: Word32 -> IO (Ptr BgfxMemory)
+
+foreign import ccall unsafe
+  "bgfx_copy" bgfxCopy :: Ptr () -> Word32 -> IO (Ptr BgfxMemory)
+
+-- foreign import ccall unsafe
+--   "bgfx_make_ref"BGFX_C_API const bgfx_memory_t* bgfx_make_ref(const void* _data, uint32_t _size);
+
+-- foreign import ccall unsafe
+-- BGFX_C_API const bgfx_memory_t* bgfx_make_ref_release(const void* _data, uint32_t _size, bgfx_release_fn_t _releaseFn, void* _userData);
+
+type BgfxShaderHandle = Word16
+
+foreign import ccall unsafe
+  "bgfx_create_shader" bgfxCreateShader :: Ptr BgfxMemory -> IO BgfxShaderHandle
+
+foreign import ccall unsafe
+  "bgfx_get_shader_uniforms" bgfxGetShaderUniforms :: BgfxShaderHandle -> Ptr BgfxUniformHandle -> Word16 -> IO Word16
+
+foreign import ccall unsafe
+  "bgfx_destroy_shader" bgfxDestroyShader :: BgfxShaderHandle -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_create_program" bgfxCreateProgram :: BgfxShaderHandle -> BgfxShaderHandle -> Bool -> IO BgfxProgramHandle
+
+foreign import ccall unsafe
+  "bgfx_create_compute_program" bgfxCreateComputeProgram :: BgfxShaderHandle -> Bool -> IO BgfxProgramHandle
+
+foreign import ccall unsafe
+  "bgfx_destroy_program" bgfxDestroyProgram :: BgfxProgramHandle -> IO ()
+
+type BgfxUniformType = (#type bgfx_uniform_type_t)
+
+pattern BGFX_UNIFORM_TYPE_INT1 = (#const BGFX_UNIFORM_TYPE_INT1)
+pattern BGFX_UNIFORM_TYPE_END  = (#const BGFX_UNIFORM_TYPE_END)
+pattern BGFX_UNIFORM_TYPE_VEC4 = (#const BGFX_UNIFORM_TYPE_VEC4)
+pattern BGFX_UNIFORM_TYPE_MAT3 = (#const BGFX_UNIFORM_TYPE_MAT3)
+pattern BGFX_UNIFORM_TYPE_MAT4  = (#const BGFX_UNIFORM_TYPE_MAT4)
+pattern BGFX_UNIFORM_TYPE_COUNT = (#const BGFX_UNIFORM_TYPE_COUNT)
+
+foreign import ccall unsafe
+  "bgfx_create_uniform" bgfxCreateUniform :: CString -> BgfxUniformType -> Word16 -> IO BgfxUniformHandle
+
+foreign import ccall unsafe
+  "bgfx_destroy_uniform" bgfxDestroyUniform :: BgfxUniformHandle -> IO ()
+
+pattern BGFX_CLEAR_NONE = (#const BGFX_CLEAR_NONE)
+pattern BGFX_CLEAR_COLOR = (#const BGFX_CLEAR_COLOR)
+pattern BGFX_CLEAR_DEPTH = (#const BGFX_CLEAR_DEPTH)
+pattern BGFX_CLEAR_STENCIL = (#const BGFX_CLEAR_STENCIL)
+pattern BGFX_CLEAR_DISCARD_COLOR_0 = (#const BGFX_CLEAR_DISCARD_COLOR_0)
+pattern BGFX_CLEAR_DISCARD_COLOR_1 = (#const BGFX_CLEAR_DISCARD_COLOR_1)
+pattern BGFX_CLEAR_DISCARD_COLOR_2 = (#const BGFX_CLEAR_DISCARD_COLOR_2)
+pattern BGFX_CLEAR_DISCARD_COLOR_3 = (#const BGFX_CLEAR_DISCARD_COLOR_3)
+pattern BGFX_CLEAR_DISCARD_COLOR_4 = (#const BGFX_CLEAR_DISCARD_COLOR_4)
+pattern BGFX_CLEAR_DISCARD_COLOR_5 = (#const BGFX_CLEAR_DISCARD_COLOR_5)
+pattern BGFX_CLEAR_DISCARD_COLOR_6 = (#const BGFX_CLEAR_DISCARD_COLOR_6)
+pattern BGFX_CLEAR_DISCARD_COLOR_7 = (#const BGFX_CLEAR_DISCARD_COLOR_7)
+pattern BGFX_CLEAR_DISCARD_DEPTH = (#const BGFX_CLEAR_DISCARD_DEPTH)
+pattern BGFX_CLEAR_DISCARD_STENCIL = (#const BGFX_CLEAR_DISCARD_STENCIL)

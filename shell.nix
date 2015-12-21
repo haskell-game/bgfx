@@ -4,12 +4,12 @@ let
 
   inherit (nixpkgs) pkgs;
 
-  f = { mkDerivation, base, bgfx, mesa, stdenv }:
+  f = { mkDerivation, base, bgfx, mesa, stdenv, sdl2 }:
       mkDerivation {
         pname = "bgfx";
         version = "0.1.0.0";
         src = ./.;
-        libraryHaskellDepends = [ base ];
+        libraryHaskellDepends = [ base sdl2 ];
         librarySystemDepends = [ bgfx mesa ];
         libraryPkgconfigDepends = [ bgfx ];
         homepage = "https://github.com/haskell-game/bgfx";
