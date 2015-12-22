@@ -9,6 +9,7 @@ import Data.Word
 import Foreign.C
 import Foreign.C.Types
 import Foreign.Ptr
+import Foreign.Storable
 
 #include "bgfx/c99/bgfx.h"
 
@@ -141,13 +142,13 @@ foreign import ccall unsafe
   "bgfx_set_view_seq" bgfxSetViewSeq :: Word8 -> Bool -> IO ()
 
 foreign import ccall unsafe
-  "bgfx_set_view_transform" bgfxSetViewTransform :: Word8 -> Ptr () -> Ptr () -> IO ()
+  "bgfx_set_view_transform" bgfxSetViewTransform :: Word8 -> Ptr a -> Ptr b -> IO ()
 
 foreign import ccall unsafe
-  "bgfx_set_view_transform_stereo" bgfxSetViewTransformStereo :: Word8 -> Ptr () -> Ptr () -> Word8 -> Ptr () -> IO ()
+  "bgfx_set_view_transform_stereo" bgfxSetViewTransformStereo :: Word8 -> Ptr a -> Ptr b -> Word8 -> Ptr () -> IO ()
 
 foreign import ccall unsafe
-  "bgfx_set_view_remap" bgfxSetVieRemap :: Word8 -> Word8 -> Ptr () -> IO ()
+  "bgfx_set_view_remap" bgfxSetVieRemap :: Word8 -> Word8 -> Ptr a -> IO ()
 
 type BgfxFrameBufferHandle = Word16
 
@@ -223,6 +224,8 @@ pattern BGFX_STATE_POINT_SIZE_MASK = (#const BGFX_STATE_POINT_SIZE_MASK)
 
 pattern BGFX_STATE_MSAA = (#const BGFX_STATE_MSAA)
 
+pattern BGFX_STATE_DEFAULT = (#const BGFX_STATE_DEFAULT)
+
 foreign import ccall unsafe
   "bgfx_set_stencil" bgfxSetStencil :: Word32 -> Word32 -> IO ()
 
@@ -246,6 +249,9 @@ foreign import ccall unsafe
 
 foreign import ccall unsafe
   "bgfx_set_scissor_cached" bgfxSetScissorCached :: Word16 -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_set_transform" bgfxSetTransform :: Ptr a -> Word16 -> IO Word32
 
 type BgfxOcclusionQueryHandle = Word16
 
@@ -440,7 +446,109 @@ foreign import ccall unsafe
   "bgfx_alloc" bgfxAlloc :: Word32 -> IO (Ptr BgfxMemory)
 
 foreign import ccall unsafe
-  "bgfx_copy" bgfxCopy :: Ptr () -> Word32 -> IO (Ptr BgfxMemory)
+  "bgfx_copy" bgfxCopy :: Ptr a -> Word32 -> IO (Ptr BgfxMemory)
+
+foreign import ccall unsafe
+  "bgfx_make_ref" bgfxMakeRef :: Ptr a -> Word32 -> IO (Ptr BgfxMemory)
+
+type BgfxAttrib = (#type bgfx_attrib_t)
+
+type BgfxAttribType = (#type bgfx_attrib_type_t)
+
+pattern BGFX_ATTRIB_POSITION = (#const BGFX_ATTRIB_POSITION)
+pattern BGFX_ATTRIB_NORMAL = (#const BGFX_ATTRIB_NORMAL)
+pattern BGFX_ATTRIB_TANGENT = (#const BGFX_ATTRIB_TANGENT)
+pattern BGFX_ATTRIB_BITANGENT = (#const BGFX_ATTRIB_BITANGENT)
+pattern BGFX_ATTRIB_COLOR0 = (#const BGFX_ATTRIB_COLOR0)
+pattern BGFX_ATTRIB_COLOR1 = (#const BGFX_ATTRIB_COLOR1)
+pattern BGFX_ATTRIB_INDICES = (#const BGFX_ATTRIB_INDICES)
+pattern BGFX_ATTRIB_WEIGHT = (#const BGFX_ATTRIB_WEIGHT)
+pattern BGFX_ATTRIB_TEXCOORD0 = (#const BGFX_ATTRIB_TEXCOORD0)
+pattern BGFX_ATTRIB_TEXCOORD1 = (#const BGFX_ATTRIB_TEXCOORD1)
+pattern BGFX_ATTRIB_TEXCOORD2 = (#const BGFX_ATTRIB_TEXCOORD2)
+pattern BGFX_ATTRIB_TEXCOORD3 = (#const BGFX_ATTRIB_TEXCOORD3)
+pattern BGFX_ATTRIB_TEXCOORD4 = (#const BGFX_ATTRIB_TEXCOORD4)
+pattern BGFX_ATTRIB_TEXCOORD5 = (#const BGFX_ATTRIB_TEXCOORD5)
+pattern BGFX_ATTRIB_TEXCOORD6 = (#const BGFX_ATTRIB_TEXCOORD6)
+pattern BGFX_ATTRIB_TEXCOORD7 = (#const BGFX_ATTRIB_TEXCOORD7)
+pattern BGFX_ATTRIB_COUNT = (#const BGFX_ATTRIB_COUNT)
+pattern BGFX_ATTRIB_TYPE_UINT8 = (#const BGFX_ATTRIB_TYPE_UINT8)
+pattern BGFX_ATTRIB_TYPE_UINT10 = (#const BGFX_ATTRIB_TYPE_UINT10)
+pattern BGFX_ATTRIB_TYPE_INT16 = (#const BGFX_ATTRIB_TYPE_INT16)
+pattern BGFX_ATTRIB_TYPE_HALF = (#const BGFX_ATTRIB_TYPE_HALF)
+pattern BGFX_ATTRIB_TYPE_FLOAT = (#const BGFX_ATTRIB_TYPE_FLOAT)
+pattern BGFX_ATTRIB_TYPE_COUNT = (#const BGFX_ATTRIB_TYPE_COUNT)
+
+data BgfxVertexDecl = BgfxVertexDecl Word32 Word16 (Ptr Word16) (Ptr Word16)
+
+instance Storable BgfxVertexDecl where
+  sizeOf ~(BgfxVertexDecl a b c d) = sizeOf a + sizeOf b + sizeOf c + sizeOf d
+  peek ptr =
+    do BgfxVertexDecl <$> peek (castPtr ptr) <*>
+         peek (castPtr (ptr `plusPtr`
+                        fromIntegral (sizeOf (undefined :: Word32)))) <*>
+         peek (castPtr (ptr `plusPtr`
+                        fromIntegral
+                          (sizeOf (undefined :: Word32) +
+                           sizeOf (undefined :: Word16)))) <*>
+         peek (castPtr (ptr `plusPtr`
+                        fromIntegral
+                          (sizeOf (undefined :: Word32) +
+                           sizeOf (undefined :: Word16) +
+                           sizeOf (undefined :: Ptr Word16))))
+  poke ptr (BgfxVertexDecl a b c d) =
+    do poke (castPtr ptr) a
+       poke (castPtr (ptr `plusPtr` fromIntegral (sizeOf (undefined :: Word32)))) b
+       poke (castPtr (ptr `plusPtr`
+                      fromIntegral
+                        (sizeOf (undefined :: Word32) +
+                         sizeOf (undefined :: Word16))))
+            c
+       poke (castPtr (ptr `plusPtr`
+                      fromIntegral
+                        (sizeOf (undefined :: Word32) +
+                         sizeOf (undefined :: Word16) +
+                         sizeOf (undefined :: Ptr Word16))))
+            d
+  alignment _ = 0
+
+foreign import ccall unsafe
+  "bgfx_create_vertex_buffer" bgfxCreateVertexBuffer :: Ptr BgfxMemory -> Ptr BgfxVertexDecl -> Word16 -> IO BgfxVertexBufferHandle
+
+foreign import ccall unsafe
+  "bgfx_vertex_decl_begin" bgfxVertexDeclBegin :: Ptr BgfxVertexDecl -> BgfxRendererType -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_vertex_decl_add" bgfxVertexDeclAdd :: Ptr BgfxVertexDecl -> BgfxAttrib -> Word8 -> BgfxAttribType -> Bool -> Bool -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_vertex_decl_end" bgfxVertexDeclEnd :: Ptr BgfxVertexDecl -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_create_index_buffer" bgfxCreateIndexBuffer :: Ptr BgfxMemory -> Word16 -> IO BgfxIndexBufferHandle
+
+pattern BGFX_BUFFER_NONE = (#const BGFX_BUFFER_NONE)
+pattern BGFX_BUFFER_COMPUTE_FORMAT_8x1 = (#const BGFX_BUFFER_COMPUTE_FORMAT_8x1)
+pattern BGFX_BUFFER_COMPUTE_FORMAT_8x2 = (#const BGFX_BUFFER_COMPUTE_FORMAT_8x2)
+pattern BGFX_BUFFER_COMPUTE_FORMAT_8x4 = (#const BGFX_BUFFER_COMPUTE_FORMAT_8x4)
+pattern BGFX_BUFFER_COMPUTE_FORMAT_16x1 = (#const BGFX_BUFFER_COMPUTE_FORMAT_16x1)
+pattern BGFX_BUFFER_COMPUTE_FORMAT_16x2 = (#const BGFX_BUFFER_COMPUTE_FORMAT_16x2)
+pattern BGFX_BUFFER_COMPUTE_FORMAT_16x4 = (#const BGFX_BUFFER_COMPUTE_FORMAT_16x4)
+pattern BGFX_BUFFER_COMPUTE_FORMAT_32x1 = (#const BGFX_BUFFER_COMPUTE_FORMAT_32x1)
+pattern BGFX_BUFFER_COMPUTE_FORMAT_32x2 = (#const BGFX_BUFFER_COMPUTE_FORMAT_32x2)
+pattern BGFX_BUFFER_COMPUTE_FORMAT_32x4 = (#const BGFX_BUFFER_COMPUTE_FORMAT_32x4)
+pattern BGFX_BUFFER_COMPUTE_FORMAT_SHIFT = (#const BGFX_BUFFER_COMPUTE_FORMAT_SHIFT)
+pattern BGFX_BUFFER_COMPUTE_FORMAT_MASK = (#const BGFX_BUFFER_COMPUTE_FORMAT_MASK)
+pattern BGFX_BUFFER_COMPUTE_TYPE_UINT = (#const BGFX_BUFFER_COMPUTE_TYPE_UINT)
+pattern BGFX_BUFFER_COMPUTE_TYPE_INT = (#const BGFX_BUFFER_COMPUTE_TYPE_INT)
+pattern BGFX_BUFFER_COMPUTE_TYPE_FLOAT = (#const BGFX_BUFFER_COMPUTE_TYPE_FLOAT)
+pattern BGFX_BUFFER_COMPUTE_TYPE_SHIFT = (#const BGFX_BUFFER_COMPUTE_TYPE_SHIFT)
+pattern BGFX_BUFFER_COMPUTE_TYPE_MASK = (#const BGFX_BUFFER_COMPUTE_TYPE_MASK)
+pattern BGFX_BUFFER_COMPUTE_READ = (#const BGFX_BUFFER_COMPUTE_READ)
+pattern BGFX_BUFFER_COMPUTE_WRITE = (#const BGFX_BUFFER_COMPUTE_WRITE)
+pattern BGFX_BUFFER_DRAW_INDIRECT = (#const BGFX_BUFFER_DRAW_INDIRECT)
+pattern BGFX_BUFFER_ALLOW_RESIZE = (#const BGFX_BUFFER_ALLOW_RESIZE)
+pattern BGFX_BUFFER_INDEX32 = (#const BGFX_BUFFER_INDEX32)
 
 -- foreign import ccall unsafe
 --   "bgfx_make_ref"BGFX_C_API const bgfx_memory_t* bgfx_make_ref(const void* _data, uint32_t _size);

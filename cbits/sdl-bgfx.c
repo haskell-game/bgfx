@@ -9,7 +9,7 @@ void bgfx_sdl_set_window(SDL_Window* _window)
   SDL_VERSION(&wmi.version);
   if (!SDL_GetWindowWMInfo(_window, &wmi) )
 		{
-			return false;
+			return;
 		}
 
   bgfx_platform_data_t pd;

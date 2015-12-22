@@ -32,3 +32,10 @@ executable hello
   extra-libraries: GL
   c-sources:
     cbits/sdl-bgfx.c
+
+executable cubes
+  build-depends: base, bgfx, sdl2, linear, bytestring, lens, distributive
+  main-is: Cubes.hs
+  extra-libraries: GL
+  c-sources:
+    cbits/sdl-bgfx.c
