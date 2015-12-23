@@ -551,9 +551,6 @@ pattern BGFX_BUFFER_ALLOW_RESIZE = (#const BGFX_BUFFER_ALLOW_RESIZE)
 pattern BGFX_BUFFER_INDEX32 = (#const BGFX_BUFFER_INDEX32)
 
 -- foreign import ccall unsafe
---   "bgfx_make_ref"BGFX_C_API const bgfx_memory_t* bgfx_make_ref(const void* _data, uint32_t _size);
-
--- foreign import ccall unsafe
 -- BGFX_C_API const bgfx_memory_t* bgfx_make_ref_release(const void* _data, uint32_t _size, bgfx_release_fn_t _releaseFn, void* _userData);
 
 type BgfxShaderHandle = Word16

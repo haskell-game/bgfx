@@ -4,14 +4,22 @@ let
 
   inherit (nixpkgs) pkgs;
 
-  f = { mkDerivation, base, bgfx, mesa, stdenv, sdl2, linear }:
+  f = { mkDerivation, base, bgfx, bytestring, clock, distributive
+      , lens, linear, mesa, sdl2, stdenv
+      }:
       mkDerivation {
         pname = "bgfx";
         version = "0.1.0.0";
         src = ./.;
-        libraryHaskellDepends = [ base sdl2 linear ];
+        isLibrary = true;
+        isExecutable = true;
+        libraryHaskellDepends = [ base ];
         librarySystemDepends = [ bgfx mesa ];
         libraryPkgconfigDepends = [ bgfx ];
+        executableHaskellDepends = [
+          base bytestring clock distributive lens linear sdl2
+        ];
+        executableSystemDepends = [ mesa ];
         homepage = "https://github.com/haskell-game/bgfx";
         description = "Haskell bindings to bgfx";
         license = stdenv.lib.licenses.bsd3;

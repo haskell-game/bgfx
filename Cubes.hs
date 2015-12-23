@@ -17,6 +17,7 @@ import qualified SDL
 import Unsafe.Coerce
 import Linear
 import Data.Distributive
+import System.Clock
 
 foreign import ccall unsafe
   "bgfx_sdl_set_window" bgfxSdlSetWindow :: Ptr a -> IO ()
@@ -28,8 +29,7 @@ main =
      let debug = BGFX_DEBUG_TEXT
      let reset = BGFX_RESET_VSYNC
      SDL.initializeAll
-     w <-
-       SDL.createWindow "bgfx with SDL2" SDL.defaultWindow
+     w <- SDL.createWindow "bgfx with SDL2" SDL.defaultWindow
      bgfxSdlSetWindow (unsafeCoerce w :: Ptr ())
      bgfxRenderFrame
      bgfxInit BGFX_RENDERER_TYPE_COUNT BGFX_PCI_ID_NONE 0 nullPtr nullPtr
@@ -46,27 +46,30 @@ main =
             withArrayLen
               cubeVertices
               (\len ptr ->
-                 bgfxMakeRef (castPtr ptr :: Ptr ())
-                             (fromIntegral len))
+                 bgfxCopy ptr (fromIntegral (len * sizeOf (head cubeVertices))))
           bgfxCreateVertexBuffer ref posColorVertexDecl BGFX_BUFFER_NONE
      ibh <-
-       do ref <-
-            withArrayLen
-              cubeIndices
-              (\len ptr ->
-                 bgfxMakeRef (castPtr ptr :: Ptr ())
-                             (fromIntegral len))
+       do ptr <- newArray cubeIndices
+          ref <-
+            bgfxMakeRef
+              ptr
+              (fromIntegral (length cubeIndices * sizeOf (head cubeIndices)))
           bgfxCreateIndexBuffer ref BGFX_BUFFER_NONE
-     program <-
-       loadProgram "vs_cubes.bin" "fs_cubes.bin"
+     program <- loadProgram "vs_cubes.bin" "fs_cubes.bin"
+     timeOffset <- getTime Monotonic
      let loop =
-           do done <- return False
+           do _ <- SDL.pollEvents
+              done <- return False
               if done
                  then return ()
                  else do tick
                          loop
          tick =
-           do with (distribute
+           do now <- getTime Monotonic
+              let time =
+                    fromIntegral (timeSpecAsNanoSecs (diffTimeSpec now timeOffset)) *
+                    1.0e-9
+              with (distribute
                       (lookAt (V3 0 0 (-35))
                               0
                               (V3 0 1 0) :: M44 Float))
@@ -77,8 +80,7 @@ main =
                                  (fromIntegral width / fromIntegral height :: Float)
                                  0.1
                                  100))
-                           (\projPtr ->
-                              bgfxSetViewTransform 0 viewPtr projPtr))
+                           (\projPtr -> bgfxSetViewTransform 0 viewPtr projPtr))
               bgfxSetViewRect 0
                               0
                               0
@@ -90,7 +92,14 @@ main =
                   do for_ [0 .. 11] $
                        \xx ->
                          do with (distribute
-                                    ((identity :: M44 Float) & translation .~
+                                    (((m33_to_m44 . fromQuaternion)
+                                        (axisAngle (V3 1 0 0)
+                                                   (time +
+                                                    fromIntegral xx * 0.21) *
+                                         axisAngle (V3 0 1 0)
+                                                   (time +
+                                                    fromIntegral yy * 0.37)) :: M44 Float) &
+                                     translation .~
                                      V3 (-15 + fromIntegral xx * 3)
                                         (-15 + fromIntegral yy * 3)
                                         0))
@@ -148,115 +157,3 @@ cubeVertices =
 cubeIndices :: [Word16]
 cubeIndices =
   [0,1,2,1,3,2,4,6,5,5,6,7,0,2,4,4,2,6,1,5,3,5,7,3,0,4,1,4,5,1,2,3,6,6,3,7]
-
-
-	-- 	// Create program from shaders.
-	-- 	m_program = loadProgram("vs_cubes", "fs_cubes");
-
-	-- 	m_timeOffset = bx::getHPCounter();
-	-- }
-
--- 	bool update() BX_OVERRIDE
--- 	{
--- 		if (!entry::processEvents(m_width, m_height, m_debug, m_reset) )
--- 		{
--- 			int64_t now = bx::getHPCounter();
--- 			static int64_t last = now;
--- 			const int64_t frameTime = now - last;
--- 			last = now;
--- 			const double freq = double(bx::getHPFrequency() );
--- 			const double toMs = 1000.0/freq;
-
--- 			float time = (float)( (now-m_timeOffset)/double(bx::getHPFrequency() ) );
-
--- 			// Use debug font to print information about this example.
--- 			bgfx::dbgTextClear();
--- 			bgfx::dbgTextPrintf(0, 1, 0x4f, "bgfx/examples/01-cube");
--- 			bgfx::dbgTextPrintf(0, 2, 0x6f, "Description: Rendering simple static mesh.");
--- 			bgfx::dbgTextPrintf(0, 3, 0x0f, "Frame: % 7.3f[ms]", double(frameTime)*toMs);
-
--- 			float at[3]  = { 0.0f, 0.0f,   0.0f };
--- 			float eye[3] = { 0.0f, 0.0f, -35.0f };
-
--- 			// Set view and projection matrix for view 0.
--- 			const bgfx::HMD* hmd = bgfx::getHMD();
--- 			if (NULL != hmd && 0 != (hmd->flags & BGFX_HMD_RENDERING) )
--- 			{
--- 				float view[16];
--- 				bx::mtxQuatTranslationHMD(view, hmd->eye[0].rotation, eye);
-
--- 				float proj[16];
--- 				bx::mtxProj(proj, hmd->eye[0].fov, 0.1f, 100.0f);
-
--- 				bgfx::setViewTransform(0, view, proj);
-
--- 				// Set view 0 default viewport.
--- 				//
--- 				// Use HMD's width/height since HMD's internal frame buffer size
--- 				// might be much larger than window size.
--- 				bgfx::setViewRect(0, 0, 0, hmd->width, hmd->height);
--- 			}
--- 			else
--- 			{
--- 				float view[16];
--- 				bx::mtxLookAt(view, eye, at);
-
--- 				float proj[16];
--- 				bx::mtxProj(proj, 60.0f, float(m_width)/float(m_height), 0.1f, 100.0f);
--- 				bgfx::setViewTransform(0, view, proj);
-
--- 				// Set view 0 default viewport.
--- 				bgfx::setViewRect(0, 0, 0, m_width, m_height);
--- 			}
-
--- 			// This dummy draw call is here to make sure that view 0 is cleared
--- 			// if no other draw calls are submitted to view 0.
--- 			bgfx::touch(0);
-
--- 			// Submit 11x11 cubes.
--- 			for (uint32_t yy = 0; yy < 11; ++yy)
--- 			{
--- 				for (uint32_t xx = 0; xx < 11; ++xx)
--- 				{
--- 					float mtx[16];
--- 					bx::mtxRotateXY(mtx, time + xx*0.21f, time + yy*0.37f);
--- 					mtx[12] = -15.0f + float(xx)*3.0f;
--- 					mtx[13] = -15.0f + float(yy)*3.0f;
--- 					mtx[14] = 0.0f;
-
--- 					// Set model matrix for rendering.
--- 					bgfx::setTransform(mtx);
-
--- 					// Set vertex and index buffer.
--- 					bgfx::setVertexBuffer(m_vbh);
--- 					bgfx::setIndexBuffer(m_ibh);
-
--- 					// Set render states.
--- 					bgfx::setState(BGFX_STATE_DEFAULT);
-
--- 					// Submit primitive for rendering to view 0.
--- 					bgfx::submit(0, m_program);
--- 				}
--- 			}
-
--- 			// Advance to next frame. Rendering thread will be kicked to
--- 			// process submitted rendering primitives.
--- 			bgfx::frame();
-
--- 			return true;
--- 		}
-
--- 		return false;
--- 	}
-
--- 	uint32_t m_width;
--- 	uint32_t m_height;
--- 	uint32_t m_debug;
--- 	uint32_t m_reset;
--- 	bgfx::VertexBufferHandle m_vbh;
--- 	bgfx::IndexBufferHandle m_ibh;
--- 	bgfx::ProgramHandle m_program;
--- 	int64_t m_timeOffset;
--- };
-
--- ENTRY_IMPLEMENT_MAIN(Cubes);
