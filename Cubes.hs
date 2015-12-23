@@ -1,23 +1,23 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ImplicitParams #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
-import Control.Lens ((&), (.~))
-import qualified Data.ByteString as BS
-import Data.Foldable (for_)
-import GHC.Stack
 import BGFX
+import Control.Lens ((&), (.~))
 import Data.Bits
-import Foreign.Ptr
-import Foreign
-import Data.Word
-import qualified SDL
-import Unsafe.Coerce
-import Linear
 import Data.Distributive
+import Data.Foldable (for_)
+import Data.Word
+import Foreign
+import Foreign.Ptr
+import GHC.Stack
+import Linear
 import System.Clock
+import Unsafe.Coerce
+import qualified Data.ByteString as BS
+import qualified SDL
 
 foreign import ccall unsafe
   "bgfx_sdl_set_window" bgfxSdlSetWindow :: Ptr a -> IO ()
@@ -29,7 +29,11 @@ main =
      let debug = BGFX_DEBUG_TEXT
      let reset = BGFX_RESET_VSYNC
      SDL.initializeAll
-     w <- SDL.createWindow "bgfx with SDL2" SDL.defaultWindow
+     w <-
+       SDL.createWindow
+         "bgfx with SDL2"
+         SDL.defaultWindow {SDL.windowInitialSize =
+                              fromIntegral <$> V2 width height}
      bgfxSdlSetWindow (unsafeCoerce w :: Ptr ())
      bgfxRenderFrame
      bgfxInit BGFX_RENDERER_TYPE_COUNT BGFX_PCI_ID_NONE 0 nullPtr nullPtr
@@ -112,47 +116,87 @@ main =
      loop
      bgfxShutdown
 
-loadProgram :: FilePath -> FilePath -> IO BgfxProgramHandle
-loadProgram vsName fsName = do
-  vs <- loadShader vsName
-  fs <- loadShader fsName
-  bgfxCreateProgram vs fs True
-  where loadShader path = do
-          bytes <- BS.readFile path
-          mem <- BS.useAsCStringLen (BS.snoc bytes 0) $ \(ptr, len) ->
-            bgfxCopy ptr (fromIntegral len)
-          bgfxCreateShader mem
+loadProgram
+  :: FilePath -> FilePath -> IO BgfxProgramHandle
+loadProgram vsName fsName =
+  do vs <- loadShader vsName
+     fs <- loadShader fsName
+     bgfxCreateProgram vs fs True
+  where loadShader path =
+          do bytes <- BS.readFile path
+             mem <-
+               BS.useAsCStringLen (BS.snoc bytes 0) $
+               \(ptr,len) -> bgfxCopy ptr (fromIntegral len)
+             bgfxCreateShader mem
 
 declarePosColorVertex :: IO (Ptr BgfxVertexDecl)
-declarePosColorVertex = do
-  vertexDecl <- malloc
-  bgfxVertexDeclBegin vertexDecl BGFX_RENDERER_TYPE_NULL
-  bgfxVertexDeclAdd vertexDecl BGFX_ATTRIB_POSITION 3 BGFX_ATTRIB_TYPE_FLOAT False False
-  bgfxVertexDeclAdd vertexDecl BGFX_ATTRIB_COLOR0 4 BGFX_ATTRIB_TYPE_UINT8 True False
-  bgfxVertexDeclEnd vertexDecl
-  return vertexDecl
+declarePosColorVertex =
+  do vertexDecl <- malloc
+     bgfxVertexDeclBegin vertexDecl BGFX_RENDERER_TYPE_NULL
+     bgfxVertexDeclAdd vertexDecl BGFX_ATTRIB_POSITION 3 BGFX_ATTRIB_TYPE_FLOAT False False
+     bgfxVertexDeclAdd vertexDecl BGFX_ATTRIB_COLOR0 4 BGFX_ATTRIB_TYPE_UINT8 True False
+     bgfxVertexDeclEnd vertexDecl
+     return vertexDecl
 
-data PosColorVertex = PosColorVertex (V3 Float) Word32
+data PosColorVertex =
+  PosColorVertex (V3 Float)
+                 Word32
 
 instance Storable PosColorVertex where
   sizeOf ~(PosColorVertex a b) = sizeOf a + sizeOf b
-  peek ptr = do
-    PosColorVertex <$> peek (castPtr ptr) <*> peek (castPtr (ptr `plusPtr` fromIntegral (sizeOf (undefined :: V3 Float))))
-  poke ptr (PosColorVertex a b)  = do
-    poke (castPtr ptr) a
-    poke (castPtr (ptr `plusPtr` fromIntegral (sizeOf (undefined :: V3 Float)))) b
+  peek ptr =
+    do PosColorVertex <$> peek (castPtr ptr) <*>
+         peek (castPtr (ptr `plusPtr`
+                        fromIntegral (sizeOf (undefined :: V3 Float))))
+  poke ptr (PosColorVertex a b) =
+    do poke (castPtr ptr) a
+       poke (castPtr (ptr `plusPtr`
+                      fromIntegral (sizeOf (undefined :: V3 Float))))
+            b
   alignment _ = 0
 
 cubeVertices :: [PosColorVertex]
 cubeVertices =
-  [PosColorVertex (V3 (-1.0) (1.0) (1.0)) 4278190080
-  ,PosColorVertex (V3 (1.0) (1.0) (1.0)) 4278190335
-  ,PosColorVertex (V3 (-1.0) (-1.0) (1.0)) 4278255360
-  ,PosColorVertex (V3 (1.0) (-1.0) (1.0)) 4278255615
-  ,PosColorVertex (V3 (-1.0) (1.0) (-1.0)) 4294901760
-  ,PosColorVertex (V3 (1.0) (1.0) (-1.0)) 4294902015
-  ,PosColorVertex (V3 (-1.0) (-1.0) (-1.0)) 4294967040
-  ,PosColorVertex (V3 (1.0) (-1.0) (-1.0)) 4294967295]
+  [PosColorVertex
+     (V3 (-1.0)
+         (1.0)
+         (1.0))
+     4278190080
+  ,PosColorVertex
+     (V3 (1.0)
+         (1.0)
+         (1.0))
+     4278190335
+  ,PosColorVertex
+     (V3 (-1.0)
+         (-1.0)
+         (1.0))
+     4278255360
+  ,PosColorVertex
+     (V3 (1.0)
+         (-1.0)
+         (1.0))
+     4278255615
+  ,PosColorVertex
+     (V3 (-1.0)
+         (1.0)
+         (-1.0))
+     4294901760
+  ,PosColorVertex
+     (V3 (1.0)
+         (1.0)
+         (-1.0))
+     4294902015
+  ,PosColorVertex
+     (V3 (-1.0)
+         (-1.0)
+         (-1.0))
+     4294967040
+  ,PosColorVertex
+     (V3 (1.0)
+         (-1.0)
+         (-1.0))
+     4294967295]
 
 cubeIndices :: [Word16]
 cubeIndices =

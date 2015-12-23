@@ -1,0 +1,6 @@
+#+TITLE: =bgfx= - Haskell bindings to the [[https://github.com/bkaradzic/bgfx][bgfx]] project
+
+Currently low-level Haskell bindings to the [[https://github.com/bkaradzic/bgfx][bgfx]] project, exposing a very C-like
+interface. In the future we hope to abstract over this to provide Haskell-like
+bindings too. Currently supports most of =bgfx=, the =cubes= example has been
+ported.
