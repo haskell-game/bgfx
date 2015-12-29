@@ -602,3 +602,106 @@ pattern BGFX_CLEAR_DISCARD_COLOR_6 = (#const BGFX_CLEAR_DISCARD_COLOR_6)
 pattern BGFX_CLEAR_DISCARD_COLOR_7 = (#const BGFX_CLEAR_DISCARD_COLOR_7)
 pattern BGFX_CLEAR_DISCARD_DEPTH = (#const BGFX_CLEAR_DISCARD_DEPTH)
 pattern BGFX_CLEAR_DISCARD_STENCIL = (#const BGFX_CLEAR_DISCARD_STENCIL)
+
+foreign import ccall unsafe
+  "bgfx_calc_texture_size" bgfxCalcTextureSize :: Ptr BgfxTextureInfo -> Word16 -> Word16 -> Word16 -> Bool -> Word8 -> BgfxTextureFormat -> IO ()
+
+data BgfxTextureInfo
+
+foreign import ccall unsafe
+  "bgfx_create_texture" bgfxCreateTexture :: Ptr BgfxMemory -> Word32 -> Word8 -> Ptr BgfxTextureInfo -> IO BgfxTextureHandle
+
+foreign import ccall unsafe
+  "bgfx_create_texture_2d" bgfxCreateTexture2D :: Word16 -> Word16 -> Word8 -> BgfxTextureFormat -> Word32 -> Ptr BgfxMemory -> IO BgfxTextureHandle
+
+foreign import ccall unsafe
+  "bgfx_create_texture_2d_scaled" bgfxCreateTexture2DScaled :: BgfxBackbufferRatio -> Word8 -> BgfxTextureFormat -> Word32 -> IO BgfxTextureHandle
+
+foreign import ccall unsafe
+  "bgfx_create_texture_3d" bgfxCreateTexture3D :: Word16 -> Word16 -> Word16 -> Word8 -> BgfxTextureFormat -> Word32 -> Ptr BgfxMemory -> IO BgfxTextureHandle
+
+foreign import ccall unsafe
+  "bgfx_create_texture_cube" bgfxCreateTextureCube :: Word16 -> Word8 -> BgfxTextureFormat -> Word32 -> Ptr BgfxMemory -> IO BgfxTextureHandle
+
+foreign import ccall unsafe
+  "bgfx_update_texture_2d" bgfxUpdateTexture2D :: BgfxTextureHandle -> Word8 -> Word16 -> Word16 -> Word16 -> Word16 -> Ptr BgfxMemory -> Word16 -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_update_texture_3d" bgfxUpdateTexture3D :: BgfxTextureHandle -> Word8 -> Word16 -> Word16 -> Word16 -> Word16 -> Word16 -> Word16 -> Ptr BgfxMemory -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_update_texture_cube" bgfxUpdateTextureCube :: BgfxTextureHandle -> Word8 -> Word8 -> Word16 -> Word16 -> Word16 -> Word16 -> Ptr BgfxMemory -> Word16 -> IO ()
+
+foreign import ccall unsafe
+    "bgfx_read_texture" bgfxReadTexture :: BgfxTextureHandle -> Ptr a -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_read_frame_buffer" bgfxReadFrameBuffer :: BgfxFrameBufferHandle -> Word8 -> Ptr a -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_destroy_texture" bgfxDestroyTexture :: BgfxTextureHandle -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_create_frame_buffer" bgfxCreateFrameBuffer :: Word16 -> Word16 -> BgfxTextureFormat -> Word32 -> IO BgfxFrameBufferHandle
+
+foreign import ccall unsafe
+  "bgfx_create_frame_buffer_scaled" bgfxCreateFrameBufferScaled :: BgfxBackbufferRatio -> BgfxTextureFormat -> Word32 -> IO BgfxFrameBufferHandle
+
+foreign import ccall unsafe
+  "bgfx_create_frame_buffer_from_handles" bgfxCreateFrameBufferFromHandles :: Word8 -> Ptr BgfxTextureHandle -> Bool -> IO BgfxFrameBufferHandle
+
+foreign import ccall unsafe
+  "bgfx_create_frame_buffer_from_nwh" bgfxCreateFrameBufferFromNWH :: Ptr a -> Word16 -> Word16 -> BgfxTextureFormat -> IO BgfxFrameBufferHandle
+
+foreign import ccall unsafe
+  "bgfx_destroy_frame_buffer" bgfxDestroyFrameBuffer :: BgfxFrameBufferHandle -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_check_avail_transient_index_buffer" bgfxCheckAvailTransientIndexBuffer :: Word32 -> IO Bool
+
+foreign import ccall unsafe
+  "bgfx_check_avail_transient_vertex_buffer" bgfxCheckAvailTransientVertexBuffer :: Word32 -> Ptr BgfxVertexDecl -> IO Bool
+
+foreign import ccall unsafe
+  "bgfx_check_avail_instance_data_buffer" bgfxCheckAvailInstanceDataBuffer :: Word32 -> Word16 -> IO Bool
+
+foreign import ccall unsafe
+  "bgfx_check_avail_transient_buffers" bgfxCheckAvailTransientBuffers :: Word32 -> Ptr BgfxVertexDecl -> Word32 -> IO Bool
+
+data BgfxTransientVertexBuffer
+
+data BgfxTransientIndexBuffer
+
+foreign import ccall unsafe
+  "bgfx_alloc_transient_index_buffer" bgfxAllocTransientIndexBuffer :: Ptr BgfxTransientIndexBuffer -> Word32 -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_alloc_transient_vertex_buffer" bgfxAllocTransientVertexBuffer :: Ptr BgfxTransientVertexBuffer -> Word32 -> Ptr BgfxVertexDecl -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_alloc_transient_buffers" bgfxAllocTransientBuffers :: Ptr BgfxTransientVertexBuffer -> Ptr BgfxVertexDecl -> Word32 -> Ptr BgfxTransientIndexBuffer -> Word32 -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_alloc_instance_data_buffer" bgfxAllocInstanceDataBuffer :: Word32 -> Word16 -> IO (Ptr BgfxInstanceDataBuffer)
+
+foreign import ccall unsafe
+  "bgfx_create_indirect_buffer" bgfxCreateIndirectBuffer :: Word32 -> BgfxIndirectBufferHandle
+
+foreign import ccall unsafe
+  "bgfx_destroy_indirect_buffer" bgfxDestroyIndirectBuffer :: BgfxIndirectBufferHandle -> IO ()
+
+foreign import ccall unsafe
+  "bgfx_create_occlusion_query" bgfxCreateOcclusionQuery :: IO BgfxOcclusionQueryHandle
+
+pattern BGFX_OCCLUSION_QUERY_RESULT_INVISIBLE = (#const BGFX_OCCLUSION_QUERY_RESULT_INVISIBLE)
+pattern BGFX_OCCLUSION_QUERY_RESULT_VISIBLE = (#const BGFX_OCCLUSION_QUERY_RESULT_VISIBLE)
+pattern BGFX_OCCLUSION_QUERY_RESULT_NORESULT = (#const BGFX_OCCLUSION_QUERY_RESULT_NORESULT)
+pattern BGFX_OCCLUSION_QUERY_RESULT_COUNT = (#const BGFX_OCCLUSION_QUERY_RESULT_COUNT )
+
+type BgfxOcclusionQueryResult = (#type bgfx_occlusion_query_result_t)
+
+foreign import ccall unsafe
+  "bgfx_get_result" bgfxGetResult :: BgfxOcclusionQueryHandle -> IO BgfxOcclusionQueryResult
+
+foreign import ccall unsafe
+  "bgfx_destroy_occlusion_query" bgfxDestroyOcclusionQuery :: BgfxOcclusionQueryHandle -> IO ()
