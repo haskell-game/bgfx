@@ -109,7 +109,7 @@ foreign import ccall unsafe
   "bgfx_set_palette_color" bgxSetPaletteColor :: Word8 -> Ptr CFloat -> IO ()
 
 foreign import ccall unsafe
-  "bgfx_save_screenshot" bgfxSaveScreenshot :: CString -> IO ()
+  "bgfx_save_screen_shot" bgfxSaveScreenshot :: CString -> IO ()
 
 foreign import ccall unsafe
   "bgfx_set_view_name" bgfxSetViewName :: Word8 -> CString -> IO ()
@@ -294,10 +294,10 @@ foreign import ccall unsafe
   "bgfx_set_instance_data_buffer" bgfxSetInstanceDataBuffer :: Ptr BgfxInstanceDataBuffer -> Word32 -> IO ()
 
 foreign import ccall unsafe
-  "bgfx_set_instance_data_buffer_from_vertex_buffer" bgfxSetInstanceDataBufferFromVertexBuffer :: BgfxVertexBufferHandle -> Word32 -> Word32 -> IO ()
+  "bgfx_set_instance_data_from_vertex_buffer" bgfxSetInstanceDataBufferFromVertexBuffer :: BgfxVertexBufferHandle -> Word32 -> Word32 -> IO ()
 
 foreign import ccall unsafe
-  "bgfx_set_instance_data_buffer_from_dynamic_vertex_buffer" bgfxSetInstanceDataBufferFromDynamicVertexBuffer :: BgfxDynamicVertexBufferHandle -> Word32 -> Word32 -> IO ()
+  "bgfx_set_instance_data_from_dynamic_vertex_buffer" bgfxSetInstanceDataBufferFromDynamicVertexBuffer :: BgfxDynamicVertexBufferHandle -> Word32 -> Word32 -> IO ()
 
 type BgfxUniformHandle = Word16
 
